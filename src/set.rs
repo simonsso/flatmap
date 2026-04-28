@@ -1,9 +1,12 @@
+use alloc::vec::{IntoIter, Vec};
+use core::fmt::{self, Debug};
+
 pub struct FlatSet<K: Eq> {
     inner: Vec<K>,
 }
 
-impl<K: Eq + std::fmt::Debug> std::fmt::Debug for FlatSet<K> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<K: Eq + Debug> Debug for FlatSet<K> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("FlatSet")
             .field("inner", &self.inner)
             .finish()
@@ -101,7 +104,7 @@ impl<K: Eq> FlatSet<K> {
 impl<K: Eq> IntoIterator for FlatSet<K> {
     type Item = K;
 
-    type IntoIter = std::vec::IntoIter<K>;
+    type IntoIter = IntoIter<K>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.inner.into_iter()
@@ -121,8 +124,8 @@ pub struct ConstantFlatSet<K: Eq, const N: usize> {
     inner: [K; N],
 }
 
-impl<K: Eq + std::fmt::Debug, const N: usize> std::fmt::Debug for ConstantFlatSet<K, N> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<K: Eq + Debug, const N: usize> Debug for ConstantFlatSet<K, N> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ConstantFlatSet")
             .field("inner", &self.inner)
             .finish()

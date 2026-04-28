@@ -1,4 +1,6 @@
-use std::fmt::Debug;
+use alloc::vec::{IntoIter, Vec};
+use core::fmt::{self, Debug};
+use core::mem;
 
 pub struct FlatMapEntry<K, V> {
     key: K,
@@ -27,7 +29,7 @@ impl<K, V> FlatMapEntry<K, V> {
 }
 
 impl<K: Debug, V: Debug> Debug for FlatMapEntry<K, V> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("FlatMapEntry")
             .field("key", &self.key)
             .field("value", &self.value)
@@ -62,7 +64,7 @@ pub struct FlatMap<K: Eq, V> {
 }
 
 impl<K: Eq + Debug, V: Debug> Debug for FlatMap<K, V> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("FlatMap")
             .field("inner", &self.inner)
             .finish()
@@ -130,7 +132,7 @@ where
         for entry in &mut self.inner {
             if &entry.key == &k {
                 let mut new_value = v;
-                std::mem::swap(&mut entry.value, &mut new_value);
+                mem::swap(&mut entry.value, &mut new_value);
                 return Some(new_value);
             }
         }
@@ -180,7 +182,7 @@ impl<K: Eq, V> IntoIterator for FlatMap<K, V> {
         self.inner.into_iter()
     }
 
-    type IntoIter = std::vec::IntoIter<FlatMapEntry<K, V>>;
+    type IntoIter = IntoIter<FlatMapEntry<K, V>>;
 }
 
 pub struct ConstantFlatMap<K: Eq, V, const N: usize> {
@@ -202,7 +204,7 @@ impl<K: Eq, V, const N: usize> From<[(K, V); N]> for ConstantFlatMap<K, V, N> {
 }
 
 impl<K: Eq + Debug, V: Debug, const N: usize> Debug for ConstantFlatMap<K, V, N> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ConstantFlatMap")
             .field("inner", &self.inner)
             .finish()
