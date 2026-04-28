@@ -102,7 +102,10 @@ where
     /// inserts entries by checking for duplicates for every item
     /// if duplicate items are found, last one stays while earlier gets discarded
     /// not recommended for large list of entries, check for duplicates yourself and use FlatMap::from_entries_unchecked
-    pub fn from_entries(iter: impl Iterator<Item = FlatMapEntry<K, V>>) -> Self {
+    pub fn from_entries(iter: impl Iterator<Item = FlatMapEntry<K, V>>) -> Self
+    where
+        K: Ord,
+    {
         let (cap, _) = iter.size_hint();
         let mut s = Self::with_capacity(cap);
         for entry in iter {
@@ -128,7 +131,10 @@ where
         None
     }
 
-    pub fn insert(&mut self, k: K, v: V) -> Option<V> {
+    pub fn insert(&mut self, k: K, v: V) -> Option<V>
+    where
+        K: Ord,
+    {
         for entry in &mut self.inner {
             if &entry.key == &k {
                 let mut new_value = v;
@@ -138,6 +144,7 @@ where
         }
 
         self.inner.push(FlatMapEntry::new(k, v));
+        self.inner.sort_by(|a, b| a.key.cmp(&b.key));
 
         None
     }
@@ -166,7 +173,7 @@ where
     }
 }
 
-impl<K: Eq, V, I> From<I> for FlatMap<K, V>
+impl<K: Eq + Ord, V, I> From<I> for FlatMap<K, V>
 where
     I: Iterator<Item = (K, V)>,
 {
@@ -219,14 +226,12 @@ impl<K: Eq + Clone, V: Clone, const N: usize> Clone for ConstantFlatMap<K, V, N>
     }
 }
 
-impl<K: Eq, V, const N: usize> ConstantFlatMap<K, V, N> {
+impl<K: Eq + Ord, V, const N: usize> ConstantFlatMap<K, V, N> {
     pub fn get(&self, key: &K) -> Option<&V> {
-        for entry in &self.inner {
-            if &entry.key == key {
-                return Some(&entry.value);
-            }
-        }
-        return None;
+        self.inner
+            .binary_search_by(|entry| entry.key().cmp(key))
+            .ok()
+            .map(|i| self.inner[i].value())
     }
 
     /// checks for duplicates, if found will return the indices of duplicate
